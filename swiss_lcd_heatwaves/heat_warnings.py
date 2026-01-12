@@ -158,4 +158,4 @@ def get_heat_days_df(heatwave_periods_dict: dict) -> pd.DataFrame:
                         _days_in_periods(heatwave_periods),
                     )
                 )
-    return pd.DataFrame(records, columns=["level", "station_type", "year", "n. days"])
+    return pd.DataFrame(records, columns=["level", "Station type", "year", "N. days"])

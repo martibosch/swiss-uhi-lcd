@@ -30,7 +30,7 @@ rule register_ipykernel:
 # 1. get urban extents -----------------------------------------------------------------
 NOMINATIM_QUERY_DICT = {
     "bern": "Kanton Bern",
-    # "lausanne": "Canton de Vaud",
+    "lausanne": "Canton de Vaud",
     "zurich": "Kanton Zürich",
 }
 
@@ -77,22 +77,14 @@ rule aws_meteo_data:
 
 
 # 2.2 low-cost devices (LCD)
-UCB_DIR = path.join(DATA_RAW_DIR, "ucb")
-LCD_INPUT_DICT = {
-    "bern": {
-        "ts_df": path.join(UCB_DIR, "ts-df-jja-2023-2024.csv"),
-        "stations_gdf": path.join(UCB_DIR, "metadata_network_2023_2024.csv"),
-    },
-    "zurich": {"ts_df": [], "stations_gdf": []},
-}
 
 
 rule lcd_meteo_data:
     input:
         spatial_extent=rules.spatial_extent.output.spatial_extent,
-        ts_df=lambda wc: LCD_INPUT_DICT[wc.slug]["ts_df"],
-        stations_gdf=lambda wc: LCD_INPUT_DICT[wc.slug]["stations_gdf"],
-        notebook=path.join(NOTEBOOKS_DIR, "get-{slug}-lcd-data.ipynb"),
+        ts_df=path.join(DATA_RAW_DIR, "{slug}-summer-2025-pcd.csv"),
+        stations_gdf=path.join(DATA_RAW_DIR, "{slug}-metadata-2025.csv"),
+        notebook=path.join(NOTEBOOKS_DIR, "get-lcd-data.ipynb"),
     output:
         ts_df=path.join(DATA_INTERIM_DIR, "{slug}-lcd-ts-df.csv"),
         stations_gdf=path.join(DATA_INTERIM_DIR, "{slug}-lcd-stations.gpkg"),
@@ -100,10 +92,31 @@ rule lcd_meteo_data:
     shell:
         "papermill {input.notebook} {output.notebook}"
         " -p spatial_extent_filepath {input.spatial_extent}"
-        " -p ts_df_filepath '{input.ts_df}'"
+        " -p ts_df_filepath {input.ts_df}"
         " -p stations_gdf_filepath '{input.stations_gdf}'"
         " -p dst_ts_df_filepath {output.ts_df}"
         " -p dst_stations_gdf_filepath {output.stations_gdf}"
+
+
+rule zurich_lcd_meteo_data:
+    input:
+        # spatial_extent=rules.spatial_extent.output.spatial_extent,
+        # TODO: how to DRY reusing rule outputs while keeping specific zurich rule?
+        spatial_extent=path.join(DATA_PROCESSED_DIR, "zurich-extent.gpkg"),
+        notebook=path.join(NOTEBOOKS_DIR, "get-zurich-lcd-data.ipynb"),
+    output:
+        ts_df=path.join(DATA_INTERIM_DIR, "zurich-lcd-ts-df.csv"),
+        stations_gdf=path.join(DATA_INTERIM_DIR, "zurich-lcd-stations.gpkg"),
+        notebook=path.join(NOTEBOOKS_OUTPUT_DIR, "get-lcd-data-zurich.ipynb"),
+    shell:
+        "papermill {input.notebook} {output.notebook}"
+        " -p spatial_extent_filepath {input.spatial_extent}"
+        " -p dst_ts_df_filepath {output.ts_df}"
+        " -p dst_stations_gdf_filepath {output.stations_gdf}"
+
+
+# when several rules match, prefer the specific ones
+ruleorder: zurich_lcd_meteo_data > lcd_meteo_data
 
 
 # rule lcd_meteo_data:
@@ -139,7 +152,7 @@ rule radiative_bias:
 
 STATION_MODEL_DICT = {
     "bern": "Abilum_2",
-    # "lausanne": "Koalasense",
+    "lausanne": "Koalasense",
     "zurich": "Decentlab",
 }
 
@@ -147,8 +160,11 @@ STATION_MODEL_DICT = {
 rule bias_correction:
     input:
         aws_ts_cube=rules.aws_meteo_data.output.ts_cube,
-        lcd_ts_df=rules.lcd_meteo_data.output.ts_df,
-        lcd_stations_gdf=rules.lcd_meteo_data.output.stations_gdf,
+        # lcd_ts_df=rules.lcd_meteo_data.output.ts_df,
+        # lcd_stations_gdf=rules.lcd_meteo_data.output.stations_gdf,
+        # TODO: how to DRY reusing rule outputs while keeping specific zurich rule?
+        lcd_ts_df=path.join(DATA_INTERIM_DIR, "{slug}-lcd-ts-df.csv"),
+        lcd_stations_gdf=path.join(DATA_INTERIM_DIR, "{slug}-lcd-stations.gpkg"),
         station_model_dict=rules.radiative_bias.output.station_model_dict,
         station_scale_dict=rules.radiative_bias.output.station_scale_dict,
         notebook=path.join(NOTEBOOKS_DIR, "bias-correction.ipynb"),
@@ -170,7 +186,7 @@ rule bias_correction:
         " -p dst_ts_df_filepath {output.ts_df}"
 
 
-rule bias_correctoins:
+rule bias_corrections:
     input:
         expand(
             path.join(DATA_INTERIM_DIR, "{slug}-cor-ts-df.csv"),

@@ -1,5 +1,8 @@
 """Plot utils."""
 
+from collections.abc import Sequence
+from typing import Literal
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
@@ -94,3 +97,40 @@ def facet_twinx_lineplot(
     g.tight_layout()
 
     return g
+
+
+def enforce_min_ax_range(
+    ax_row: Sequence[plt.Axes],
+    min_range: float,
+    axis: Literal["x", "y"],
+) -> None:
+    """
+    Ensure that every Axes in `ax_row` spans at least `min_range` of the axis units.
+
+    Parameters
+    ----------
+    ax_row : list-like
+        Sequence of containing the row of Axes objects.
+    min_range : numeric
+        Desired minimum span (e.g. `4e3`).
+    axis :
+        Which axis to adjust.
+    """
+    # get the current limits from the *first* Axes in the row (all axes in the same row
+    # are assumed to share the same data extent)
+    low, high = getattr(ax_row[0], f"get_{axis}lim")()
+    cur_span = high - low
+
+    # if the current span is already big enough, do nothing.
+    if cur_span >= min_range:
+        return
+
+    # compute new centred limits that give exactly `min_range` span.
+    midpoint = (low + high) / 2.0
+    new_low = midpoint - min_range / 2.0
+    new_high = midpoint + min_range / 2.0
+
+    # apply the new limits to every Axes in the row.
+    set_func = f"set_{axis}lim"
+    for ax in ax_row:
+        getattr(ax, set_func)(new_low, new_high)
