@@ -19,7 +19,6 @@ classifiers = [
   "Programming Language :: Python :: 3.14"
 ]
 requires-python = ">=3.10"
-dependencies = ["urban-footprinter>=0.4.0,<0.5"]
 
 [project.urls]
 repository = "https://github.com/martibosch/swiss-lcd-heatwaves"
@@ -39,7 +38,7 @@ python = "3.12.*"
 snakemake = ">=9.13.7,<10"
 pandas = ">=2.3.3,<3"
 seaborn = ">=0.13.2,<0.14"
-# meteora = ">=0.8.0,<0.9"
+# meteora = ">=0.12.0,<0.13"
 pyproj = ">=3.7.2,<4"
 osmnx = ">=2.0.6,<3"
 pyogrio = ">=0.11.0,<0.12"
@@ -56,9 +55,16 @@ sktime = ">=0.40.1,<0.41"
 skops = ">=0.13.0,<0.14"
 matplotlib = ">=3.10.8,<4"
 netcdf4 = ">=1.7.3,<2"
+pyarrow = ">=23.0.0,<24"
+xclim = ">=0.60.0,<0.61"
+geocat-viz = ">=2025.7.0,<2026"
+interpret = ">=0.7.7,<0.8"
 
 [tool.pixi.pypi-dependencies]
+flaml = {version = ">=2.5.0,<3", extras = ["automl", "forecast"]}
 swiss_lcd_heatwaves = {path = ".", editable = true}
+urban_footprinter = ">=0.4.0,<0.5"
+# meteora = { git = "https://github.com/martibosch/meteora", rev = "main" }
 meteora = {path = "../../libraries/meteora", editable = true}
 
 [tool.pixi.workspace]

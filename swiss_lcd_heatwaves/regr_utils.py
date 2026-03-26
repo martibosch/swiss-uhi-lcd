@@ -3,10 +3,78 @@
 import copy
 from collections.abc import Mapping, Sequence
 
+import numpy as np
 import pandas as pd
 from scipy import stats
 from sklearn import preprocessing
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.utils.validation import check_is_fitted
 from sktime.forecasting import auto_reg, compose
+
+
+class BestScaleRadiationTransformer(BaseEstimator, TransformerMixin):
+    """Select best radiation rolling-sum window and apply it.
+
+    During ``fit``, evaluates each candidate window size in *window_minutes*
+    by Pearson correlation with the target and stores the best one as
+    ``best_scale_``.  During ``transform``, applies a rolling sum of that
+    window to the radiation column and returns a single-column DataFrame.
+
+    Parameters
+    ----------
+    window_minutes : sequence of int
+        Candidate window sizes (in minutes) to evaluate.
+    time_col : str, default "time"
+        Column of X containing datetime values.
+    radiation_col : str, default "radiation_shortwave"
+        Column of X containing raw shortwave radiation values.
+    """
+
+    def __init__(
+        self,
+        window_minutes,
+        time_col="time",
+        radiation_col="radiation_shortwave",
+    ):
+        self.window_minutes = window_minutes
+        self.time_col = time_col
+        self.radiation_col = radiation_col
+
+    def _apply_rolling(self, X, window_minutes):
+        rad_ser = pd.Series(
+            X[self.radiation_col].values,
+            index=pd.DatetimeIndex(X[self.time_col].values),
+        ).sort_index()
+        rolled = rad_ser.rolling(
+            pd.Timedelta(minutes=window_minutes), min_periods=1
+        ).sum()
+        return X[self.time_col].map(rolled)
+
+    def fit(self, X, y):
+        """Fit the model to the given data."""
+        X = pd.DataFrame(X) if not isinstance(X, pd.DataFrame) else X
+        y_arr = np.asarray(y, dtype=float)
+
+        best_r = -np.inf
+        best_scale = list(self.window_minutes)[0]
+        for w in self.window_minutes:
+            x_vals = self._apply_rolling(X, w)
+            mask = x_vals.notna() & np.isfinite(y_arr)
+            if mask.sum() < 2:
+                continue
+            r = stats.pearsonr(x_vals[mask].values, y_arr[mask]).statistic
+            if r > best_r:
+                best_r = r
+                best_scale = w
+
+        self.best_scale_ = best_scale
+        return self
+
+    def transform(self, X):
+        """Apply the rolling sum with the best window size found during fit."""
+        check_is_fitted(self)
+        X = pd.DataFrame(X) if not isinstance(X, pd.DataFrame) else X
+        return self._apply_rolling(X, self.best_scale_).to_frame(self.radiation_col)
 
 
 def _compare_models(station_ts_df, model_dict, y_col, x_cols):

@@ -1,4 +1,4 @@
-[![GitHub license](https://img.shields.io/github/license/martibosch/swiss-lcd-heatwaves.svg)](https://github.com/martibosch/swiss-lcd-heatwaves/blob/main/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/martibosch/swiss-uhi-lcd.svg)](https://github.com/martibosch/swiss-uhi-lcd/blob/main/LICENSE)
 
 # Revisiting urban heat warnings in Switzerland using low-cost measurement networks
 
