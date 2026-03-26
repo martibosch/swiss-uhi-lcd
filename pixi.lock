@@ -17721,7 +17721,7 @@ packages:
   size: 11419682
   timestamp: 1764983650145
 - pypi: ./
-  name: swiss-lcd-heatwaves
+  name: swiss-uhi-lcd
   version: 0.1.0
   sha256: 082e3346a2536417fc7302e46f28baca30d4fb212315419fb78ae1d925267b62
   requires_python: '>=3.10'

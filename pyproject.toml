@@ -3,7 +3,7 @@ requires = ["uv_build>=0.9.4,<0.10.0"]
 build-backend = "uv_build"
 
 [project]
-name = "swiss-lcd-heatwaves"
+name = "swiss-uhi-lcd"
 version = "0.1.0"
 description = "Revisiting urban heat warnings in Switzerland using low-cost measurement networks"
 authors = [{name = "Martí Bosch", email = "marti.bosch@epfl.ch"}]
@@ -21,7 +21,7 @@ classifiers = [
 requires-python = ">=3.10"
 
 [project.urls]
-repository = "https://github.com/martibosch/swiss-lcd-heatwaves"
+repository = "https://github.com/martibosch/swiss-uhi-lcd"
 
 [tool.codespell]
 ignore-words-list = "convencional,pres,ser,temperatur"
@@ -62,7 +62,7 @@ interpret = ">=0.7.7,<0.8"
 
 [tool.pixi.pypi-dependencies]
 flaml = {version = ">=2.5.0,<3", extras = ["automl", "forecast"]}
-swiss_lcd_heatwaves = {path = ".", editable = true}
+swiss_uhi_lcd = {path = ".", editable = true}
 urban_footprinter = ">=0.4.0,<0.5"
 # meteora = { git = "https://github.com/martibosch/meteora", rev = "main" }
 meteora = {path = "../../libraries/meteora", editable = true}
@@ -70,7 +70,7 @@ meteora = {path = "../../libraries/meteora", editable = true}
 [tool.pixi.workspace]
 authors = ["Martí Bosch marti.bosch@epfl.ch>"]
 channels = ["conda-forge", "bioconda"]
-name = "swiss-lcd-heatwaves"
+name = "swiss-uhi-lcd"
 platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
 version = "0.1.0"
 
@@ -84,11 +84,11 @@ docstring-code-format = true
 select = ["D", "E", "F", "I"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["swiss_lcd_heatwaves"]
+known-first-party = ["swiss_uhi_lcd"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 
 [tool.uv.build-backend]
-module-name = "swiss_lcd_heatwaves"
+module-name = "swiss_uhi_lcd"
 module-root = ""

@@ -12,7 +12,7 @@ import xvec  # noqa: F401
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from scipy import stats
 
-from swiss_lcd_heatwaves import plot_utils
+from swiss_uhi_lcd import plot_utils
 
 
 def r2_annotate(

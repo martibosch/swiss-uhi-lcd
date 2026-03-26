@@ -1,7 +1,7 @@
 from os import path
 
-PROJECT_NAME = "swiss-lcd-heatwaves"
-CODE_DIR = "swiss_lcd_heatwaves"
+PROJECT_NAME = "swiss-uhi-lcd"
+CODE_DIR = "swiss_uhi_lcd"
 PYTHON_VERSION = "3.13"
 
 NOTEBOOKS_DIR = "notebooks"
