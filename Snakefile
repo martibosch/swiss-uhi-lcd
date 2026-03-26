@@ -15,6 +15,25 @@ DATA_PROCESSED_DIR = path.join(DATA_DIR, "processed")
 MODELS_DIR = "models"
 
 FIGURES_DIR = "reports/figures"
+TABLES_DIR = "reports/tables"
+
+# ACHTUNG: we are kind of adding this unnecessary AGGLOM_SLUGS because we are using
+# decentlab/barani as figure labels whereas the rules and other file names here use
+# awel/ugz. TODO: fix it (maybe)?
+AGGLOM_SLUGS = ["bern", "lausanne", "neuchatel", "zurich-decentlab", "zurich-barani"]
+
+
+rule results:
+    input:
+        path.join(TABLES_DIR, "agreement-metrics.csv"),
+        path.join(FIGURES_DIR, "bland-altman-plot.pdf"),
+        path.join(FIGURES_DIR, "heat-warnings-barplot-separate.pdf"),
+        path.join(FIGURES_DIR, "tn-barplot-separate.pdf"),
+        expand(
+            path.join(FIGURES_DIR, "tn-station-maps-separate-{slug}.png"),
+            slug=AGGLOM_SLUGS,
+        ),
+        path.join(FIGURES_DIR, "t-diurnal-cycle-separate.pdf"),
 
 
 # 1. get urban extents -----------------------------------------------------------------
@@ -132,6 +151,19 @@ ruleorder: zurich_awel_lcd_meteo_data > lcd_meteo_data
 
 
 # 3. bias correction -------------------------------------------------------------------
+rule agreement_metrics:
+    input:
+        ts_df=path.join(DATA_RAW_DIR, "parallel-2025-int.csv"),
+        notebook=path.join(NOTEBOOKS_DIR, "agreement-metrics.ipynb"),
+    output:
+        agreement_table=path.join(TABLES_DIR, "agreement-metrics.csv"),
+        notebook=path.join(NOTEBOOKS_OUTPUT_DIR, "agreement-metrics.ipynb"),
+    shell:
+        "papermill {input.notebook} {output.notebook}"
+        " -p ts_df_filepath {input.ts_df}"
+        " -p dst_agreement_table_filepath {output.agreement_table}"
+
+
 rule train_bias_correction:
     input:
         ts_df=path.join(DATA_RAW_DIR, "parallel-2025-int.csv"),
@@ -195,3 +227,41 @@ rule apply_bias_corrections:
             path.join(DATA_INTERIM_DIR, "{slug}-cor-ts-df.csv"),
             slug=LCD_SLUGS,
         ),
+
+
+# 4. heat indices ----------------------------------------------------------------------
+CITY_SLUGS = list(dict.fromkeys(SLUG_CITY_DICT.values()))
+
+
+rule heat_indices:
+    input:
+        aws_ts_cubes=expand(
+            path.join(DATA_INTERIM_DIR, "{slug}-aws-ts-cube.nc"),
+            slug=CITY_SLUGS,
+        ),
+        lcd_ts_dfs=expand(
+            path.join(DATA_INTERIM_DIR, "{slug}-lcd-ts-df.csv"),
+            slug=LCD_SLUGS,
+        ),
+        lcd_stations_gdfs=expand(
+            path.join(DATA_INTERIM_DIR, "{slug}-lcd-stations.gpkg"),
+            slug=LCD_SLUGS,
+        ),
+        cor_ts_dfs=expand(
+            path.join(DATA_INTERIM_DIR, "{slug}-cor-ts-df.csv"),
+            slug=LCD_SLUGS,
+        ),
+        notebook=path.join(NOTEBOOKS_DIR, "heat-indices.ipynb"),
+    output:
+        heat_warnings_barplot=path.join(
+            FIGURES_DIR, "heat-warnings-barplot-separate.pdf"
+        ),
+        tn_barplot=path.join(FIGURES_DIR, "tn-barplot-separate.pdf"),
+        tn_station_maps=expand(
+            path.join(FIGURES_DIR, "tn-station-maps-separate-{slug}.png"),
+            slug=AGGLOM_SLUGS,
+        ),
+        t_diurnal_cycle=path.join(FIGURES_DIR, "t-diurnal-cycle-separate.pdf"),
+        notebook=path.join(NOTEBOOKS_OUTPUT_DIR, "heat-indices.ipynb"),
+    shell:
+        "papermill {input.notebook} {output.notebook}"

@@ -17723,7 +17723,7 @@ packages:
 - pypi: ./
   name: swiss-uhi-lcd
   version: 0.1.0
-  sha256: 082e3346a2536417fc7302e46f28baca30d4fb212315419fb78ae1d925267b62
+  sha256: 2411f3ae05d07c91f879d6d82dcd993ad0e74843a39c92f90b251143d37da50a
   requires_python: '>=3.10'
 - conda: https://conda.anaconda.org/conda-forge/noarch/swisslandstats-geopy-0.12.0-pyhd8ed1ab_0.conda
   sha256: 48ff24ee5d6bfb9dcaf0f5db60699df353cf0b156f82d6101e13fe96f24f58bb
