@@ -64,11 +64,10 @@ interpret = ">=0.7.7,<0.8"
 flaml = {version = ">=2.5.0,<3", extras = ["automl", "forecast"]}
 swiss_uhi_lcd = {path = ".", editable = true}
 urban_footprinter = ">=0.4.0,<0.5"
-# meteora = { git = "https://github.com/martibosch/meteora", rev = "main" }
-meteora = {path = "../../libraries/meteora", editable = true}
+meteora = {version = ">=0.15.0", extras = ["sk"]}
 
 [tool.pixi.workspace]
-authors = ["Martí Bosch marti.bosch@epfl.ch>"]
+authors = ["Martí Bosch marti.bosch@unibe.ch>"]
 channels = ["conda-forge", "bioconda"]
 name = "swiss-uhi-lcd"
 platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]

@@ -1,6 +1,7 @@
 from os import path
 
 PROJECT_NAME = "swiss-uhi-lcd"
+HF_USERNAME = "martibosch"
 CODE_DIR = "swiss_uhi_lcd"
 PYTHON_VERSION = "3.13"
 
@@ -25,7 +26,7 @@ AGGLOM_SLUGS = ["bern", "lausanne", "neuchatel", "zurich-decentlab", "zurich-bar
 
 rule results:
     input:
-        path.join(TABLES_DIR, "agreement-metrics.csv"),
+        # path.join(TABLES_DIR, "agreement-metrics.csv"),
         path.join(FIGURES_DIR, "bland-altman-plot.pdf"),
         path.join(FIGURES_DIR, "heat-warnings-barplot-separate.pdf"),
         path.join(FIGURES_DIR, "tn-barplot-separate.pdf"),
@@ -48,11 +49,11 @@ NOMINATIM_QUERY_DICT = {
 rule spatial_extent:
     input:
         notebook=path.join(NOTEBOOKS_DIR, "get-spatial-extent.ipynb"),
-    params:
-        nominatim_query=lambda wc: NOMINATIM_QUERY_DICT[wc.slug],
     output:
         spatial_extent=path.join(DATA_PROCESSED_DIR, "{slug}-extent.gpkg"),
         notebook=path.join(NOTEBOOKS_OUTPUT_DIR, "get-spatial-extent-{slug}.ipynb"),
+    params:
+        nominatim_query=lambda wc: NOMINATIM_QUERY_DICT[wc.slug],
     shell:
         "papermill {input.notebook} {output.notebook}"
         " -p nominatim_query '{params.nominatim_query}'"
@@ -151,37 +152,41 @@ ruleorder: zurich_awel_lcd_meteo_data > lcd_meteo_data
 
 
 # 3. bias correction -------------------------------------------------------------------
+PARALLEL_TS_DF_FILEPATH = path.join(DATA_RAW_DIR, "parallel-2025-int.csv")
+
+
 rule agreement_metrics:
     input:
         ts_df=path.join(DATA_RAW_DIR, "parallel-2025-int.csv"),
         notebook=path.join(NOTEBOOKS_DIR, "agreement-metrics.ipynb"),
     output:
-        agreement_table=path.join(TABLES_DIR, "agreement-metrics.csv"),
+        # agreement_table=path.join(TABLES_DIR, "agreement-metrics.csv"),
+        bland_altman_plot=path.join(FIGURES_DIR, "bland-altman-plot.pdf"),
         notebook=path.join(NOTEBOOKS_OUTPUT_DIR, "agreement-metrics.ipynb"),
     shell:
         "papermill {input.notebook} {output.notebook}"
         " -p ts_df_filepath {input.ts_df}"
-        " -p dst_agreement_table_filepath {output.agreement_table}"
+
+        " -p dst_fig_bland_altman_plot_filepath {output.bland_altman_plot}"
+        # " -p dst_agreement_table_filepath {output.agreement_table}"
 
 
 rule train_bias_correction:
     input:
-        ts_df=path.join(DATA_RAW_DIR, "parallel-2025-int.csv"),
+        ts_df=PARALLEL_TS_DF_FILEPATH,
         notebook=path.join(NOTEBOOKS_DIR, "train-bias-correction.ipynb"),
-    params:
-        models_dir=MODELS_DIR,
     output:
-        station_model_dict=path.join(DATA_PROCESSED_DIR, "station-model-dict.json"),
-        station_scale_dict=path.join(DATA_PROCESSED_DIR, "station-scale-dict.json"),
-        bland_altman_plot=path.join(FIGURES_DIR, "bland-altman-plot.pdf"),
+        station_model_repo_dict=path.join(
+            DATA_PROCESSED_DIR, "station-model-repo-dict.json"
+        ),
         notebook=path.join(NOTEBOOKS_OUTPUT_DIR, "train-bias-correction.ipynb"),
+    params:
+        hf_username=HF_USERNAME,
     shell:
         "papermill {input.notebook} {output.notebook}"
         " -p ts_df_filepath {input.ts_df}"
-        " -p models_dir {params.models_dir}"
-        " -p dst_station_model_dict_filepath {output.station_model_dict}"
-        " -p dst_station_scale_dict_filepath {output.station_scale_dict}"
-        " -p dst_fig_bland_altman_plot_filepath {output.bland_altman_plot}"
+        " -p hf_username {params.hf_username}"
+        " -p dst_station_model_repo_dict_filepath {output.station_model_repo_dict}"
 
 
 STATION_MODEL_DICT = {
@@ -200,24 +205,24 @@ rule apply_bias_correction:
         ),
         lcd_ts_df=path.join(DATA_INTERIM_DIR, "{slug}-lcd-ts-df.csv"),
         lcd_stations_gdf=path.join(DATA_INTERIM_DIR, "{slug}-lcd-stations.gpkg"),
-        station_model_dict=rules.train_bias_correction.output.station_model_dict,
-        station_scale_dict=rules.train_bias_correction.output.station_scale_dict,
+        station_model_repo_dict=(
+            rules.train_bias_correction.output.station_model_repo_dict
+        ),
+        parallel_ts_df=PARALLEL_TS_DF_FILEPATH,
         notebook=path.join(NOTEBOOKS_DIR, "apply-bias-correction.ipynb"),
-    params:
-        models_dir=MODELS_DIR,
-        station_model=lambda wc: STATION_MODEL_DICT[wc.slug],
     output:
         ts_df=path.join(DATA_INTERIM_DIR, "{slug}-cor-ts-df.csv"),
         notebook=path.join(NOTEBOOKS_OUTPUT_DIR, "apply-bias-correction-{slug}.ipynb"),
+    params:
+        station_model=lambda wc: STATION_MODEL_DICT[wc.slug],
     shell:
         "papermill {input.notebook} {output.notebook}"
         " -p aws_ts_cube_filepath {input.aws_ts_cube}"
         " -p lcd_ts_df_filepath {input.lcd_ts_df}"
         " -p lcd_stations_gdf_filepath {input.lcd_stations_gdf}"
-        " -p models_dir {params.models_dir}"
         " -p station_model '{params.station_model}'"
-        " -p station_model_dict_filepath {input.station_model_dict}"
-        " -p station_scale_dict_filepath {input.station_scale_dict}"
+        " -p station_model_repo_dict_filepath {input.station_model_repo_dict}"
+        " -p parallel_ts_df_filepath {input.parallel_ts_df}"
         " -p dst_ts_df_filepath {output.ts_df}"
 
 
