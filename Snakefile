@@ -30,10 +30,7 @@ rule results:
         path.join(FIGURES_DIR, "bland-altman-plot.pdf"),
         path.join(FIGURES_DIR, "heat-warnings-barplot-separate.pdf"),
         path.join(FIGURES_DIR, "tn-barplot-separate.pdf"),
-        expand(
-            path.join(FIGURES_DIR, "tn-station-maps-separate-{slug}.png"),
-            slug=AGGLOM_SLUGS,
-        ),
+        path.join(FIGURES_DIR, "tn-station-maps-single-scale.png"),
         path.join(FIGURES_DIR, "t-diurnal-cycle-separate.pdf"),
 
 
@@ -265,6 +262,9 @@ rule heat_indices:
         tn_station_maps=expand(
             path.join(FIGURES_DIR, "tn-station-maps-separate-{slug}.png"),
             slug=AGGLOM_SLUGS,
+        ),
+        tn_station_maps_single_scale=path.join(
+            FIGURES_DIR, "tn-station-maps-single-scale.png"
         ),
         t_diurnal_cycle=path.join(FIGURES_DIR, "t-diurnal-cycle-separate.pdf"),
         notebook=path.join(NOTEBOOKS_OUTPUT_DIR, "heat-indices.ipynb"),
