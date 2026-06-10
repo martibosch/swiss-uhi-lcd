@@ -14,7 +14,11 @@ Pre-trained bias correction model weights are available on the [Hugging Face Hub
 
 ## Instructions to reproduce
 
-The workflow is managed with [Snakemake](https://snakemake.readthedocs.io) and executes Jupyter notebooks via [papermill](https://papermill.readthedocs.io). To reproduce all results:
+The workflow is managed with [Snakemake](https://snakemake.readthedocs.io) and executes Jupyter notebooks via [papermill](https://papermill.readthedocs.io).
+
+> **Note:** Before running the pipeline, download the URS dataset zip from [BORIS](https://boris-portal.unibe.ch/entities/product/c5fe9051-c7d9-482e-8a3a-56c0315bea4d) and place it in `data/raw/`. Snakemake will extract it automatically.
+
+To reproduce all results:
 
 ```bash
 pixi run snakemake results --cores 1

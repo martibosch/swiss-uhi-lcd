@@ -95,13 +95,35 @@ SLUG_CITY_DICT = {
 }
 LCD_SLUGS = tuple(SLUG_CITY_DICT.keys())
 
+URS_ZIP = DATA_RAW_DIR / "URS_V1.zip"
+URS_DIR = DATA_RAW_DIR / "URS_V1"
+# maps pipeline slug → path prefix shared by _pcd.csv and _metadata.csv URS files
+URS_LCD_SLUG_DICT = {
+    "bern": URS_DIR / "Bern_Ostermundigen" / "BernOstermundigen",
+    "lausanne": URS_DIR / "Lausanne" / "Lausanne",
+    "neuchatel": URS_DIR / "Neuchatel" / "Neuchatel",
+    "zurich-ugz": URS_DIR / "Zürich" / "Zürich",
+}
+
+
+rule get_urs_data:
+    input:
+        urs_zip=URS_ZIP,
+    output:
+        ts_dfs=[Path(f"{p}_pcd.csv") for p in URS_LCD_SLUG_DICT.values()],
+        metadata=[Path(f"{p}_metadata.csv") for p in URS_LCD_SLUG_DICT.values()],
+    shell:
+        "unzip -o {input.urs_zip} -d {DATA_RAW_DIR}"
+
 
 rule lcd_meteo_data:
+    wildcard_constraints:
+        slug="|".join(URS_LCD_SLUG_DICT.keys()),
     input:
         spatial_extent=lambda wc: DATA_PROCESSED_DIR
         / f"{SLUG_CITY_DICT[wc.slug]}-extent.gpkg",
-        ts_df=DATA_RAW_DIR / "{slug}-summer-2025-pcd.csv",
-        stations_gdf=DATA_RAW_DIR / "{slug}-metadata-2025.csv",
+        ts_df=lambda wc: Path(f"{URS_LCD_SLUG_DICT[wc.slug]}_pcd.csv"),
+        stations_gdf=lambda wc: Path(f"{URS_LCD_SLUG_DICT[wc.slug]}_metadata.csv"),
         notebook=NOTEBOOKS_DIR / "get-lcd-data.ipynb",
     output:
         ts_df=DATA_INTERIM_DIR / "{slug}-lcd-ts-df.csv",
