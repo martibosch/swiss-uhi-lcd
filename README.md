@@ -2,7 +2,11 @@
 
 # Revisiting urban heat indices in Switzerland using low-cost measurement networks
 
-Materials to reproduce the results of the article *"Revisiting urban heat indices in Switzerland using low-cost measurement networks" (in preparation)*.
+Materials to reproduce the results of the article *"Revisiting urban heat indices in Switzerland using low-cost measurement networks"* ([arXiv:2606.09364](https://arxiv.org/abs/2606.09364)).
+
+Pre-trained bias correction model weights are available on the [Hugging Face Hub](https://huggingface.co/martibosch/lcd-bias-correction).
+
+![Tropical night frequency maps across Swiss cities](reports/figures/tn-station-maps-single-scale.png)
 
 ## Requirements
 
@@ -54,6 +58,20 @@ flowchart LR
     heat --> results(["Results"])
     train --> results
     agreement --> results
+```
+
+## Citation
+
+```bibtex
+@misc{bosch2026revisiting,
+      title={Revisiting urban heat indices in Switzerland using low-cost measurement networks},
+      author={Martí Bosch and Moritz Burger},
+      year={2026},
+      eprint={2606.09364},
+      archivePrefix={arXiv},
+      primaryClass={physics.ao-ph},
+      url={https://arxiv.org/abs/2606.09364},
+}
 ```
 
 ## Acknowledgments
